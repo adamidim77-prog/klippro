@@ -3,6 +3,13 @@
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "../lib/supabaseClient";
 
+function formatTimecode(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const m = String(Math.floor(totalSec / 60)).padStart(2, "0");
+  const s = String(totalSec % 60).padStart(2, "0");
+  return `${m}:${s}`;
+}
+
 export default function Home() {
   const [session, setSession] = useState(null);
   const [projects, setProjects] = useState([]);
@@ -52,8 +59,6 @@ export default function Home() {
     setError("");
 
     try {
-      // Upload LANGSUNG dari browser ke Cloudinary (tidak lewat server kita,
-      // supaya tidak kena batas ukuran request di Vercel).
       const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
       const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
       const publicId = `klippro_video_${session.user.id}_${Date.now()}`;
@@ -84,7 +89,6 @@ export default function Home() {
         .single();
       if (insertErr) throw insertErr;
 
-      // Mulai proses transkripsi otomatis di background
       fetch("/api/transcribe", {
         method: "POST",
         body: JSON.stringify({ projectId: project.id, videoUrl: cloudData.secure_url }),
@@ -139,95 +143,119 @@ export default function Home() {
   if (!session) return <LoginForm />;
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", padding: 16, fontFamily: "system-ui" }}>
-      <h1>KlipPro</h1>
-      <p>Ubah video panjang jadi klip pendek berpotensi viral.</p>
+    <main className="wrap">
+      <div className="hero">
+        <h1>KlipPro</h1>
+        <p>Tempel video panjang, AI carikan momen-momen yang layak jadi klip pendek.</p>
+      </div>
 
-      <section style={{ border: "1px solid #333", borderRadius: 12, padding: 16, marginBottom: 24 }}>
-        <h3>1. Tempel link YouTube (opsional — hanya pratinjau)</h3>
+      <div className="step">
+        <div className="step-label"><span className="tick" />Sumber video</div>
+
         <input
           value={youtubeUrl}
           onChange={(e) => setYoutubeUrl(e.target.value)}
-          placeholder="https://youtu.be/..."
-          style={{ width: "100%", padding: 8, marginBottom: 8 }}
+          placeholder="Tempel link YouTube (opsional, hanya pratinjau)"
         />
-        <button onClick={handleYoutubePreview}>Lihat Pratinjau</button>
+        <button className="btn btn-secondary" onClick={handleYoutubePreview}>Lihat Pratinjau</button>
 
         {youtubePreview && (
           <div style={{ marginTop: 12 }}>
-            <img src={youtubePreview.thumbnail} alt="" style={{ width: "100%", borderRadius: 8 }} />
-            <p><strong>{youtubePreview.title}</strong> — {youtubePreview.author}</p>
-            <p style={{ fontSize: 13, opacity: 0.8 }}>{youtubePreview.note}</p>
+            <img src={youtubePreview.thumbnail} alt="" style={{ width: "100%", borderRadius: 10 }} />
+            <p className="project-title" style={{ marginTop: 8 }}>{youtubePreview.title}</p>
+            <p className="clip-reason">{youtubePreview.note}</p>
           </div>
         )}
 
-        <h3 style={{ marginTop: 16 }}>2. Upload file video</h3>
-        <input type="file" accept="video/*" onChange={handleUpload} disabled={uploading} />
-        {uploading && <p>Mengunggah...</p>}
+        <div style={{ marginTop: 18 }}>
+          <input type="file" accept="video/*" onChange={handleUpload} disabled={uploading} />
+          {uploading && <p className="clip-reason">Mengunggah ke Cloudinary...</p>}
+        </div>
 
-        <h3 style={{ marginTop: 16 }}>3. Atau tempel link Google Drive</h3>
-        <p style={{ fontSize: 12, opacity: 0.7 }}>
-          File harus di-share dengan akses "Anyone with the link".
-        </p>
-        <input
-          value={driveUrl}
-          onChange={(e) => setDriveUrl(e.target.value)}
-          placeholder="https://drive.google.com/file/d/..."
-          style={{ width: "100%", padding: 8, marginBottom: 8 }}
-        />
-        <button onClick={handleDriveImport} disabled={driveLoading}>
-          {driveLoading ? "Mengambil video..." : "Ambil dari Drive"}
-        </button>
+        <div style={{ marginTop: 18 }}>
+          <p className="clip-reason" style={{ marginBottom: 8 }}>
+            Atau tempel link Google Drive (file harus di-share "Anyone with the link"):
+          </p>
+          <input
+            value={driveUrl}
+            onChange={(e) => setDriveUrl(e.target.value)}
+            placeholder="https://drive.google.com/file/d/..."
+          />
+          <button className="btn btn-secondary" onClick={handleDriveImport} disabled={driveLoading}>
+            {driveLoading ? "Mengambil video..." : "Ambil dari Drive"}
+          </button>
+        </div>
 
-        {error && <p style={{ color: "salmon" }}>{error}</p>}
+        {error && <p className="error-msg">{error}</p>}
+      </div>
 
-        <h3 style={{ marginTop: 16 }}>Pengaturan klip</h3>
-        <label style={{ display: "block", marginBottom: 8 }}>
-          Jumlah klip:{" "}
+      <div className="settings">
+        <div className="settings-row">
+          <span>Jumlah klip</span>
           <select value={clipCount} onChange={(e) => setClipCount(Number(e.target.value))}>
             <option value={3}>3</option>
             <option value={4}>4</option>
             <option value={6}>6</option>
           </select>
-        </label>
-        <label style={{ display: "block", marginBottom: 8 }}>
-          Mode layout:{" "}
+        </div>
+        <div className="settings-row">
+          <span>Mode layout</span>
           <select value={layoutMode} onChange={(e) => setLayoutMode(e.target.value)}>
-            <option value="auto">Auto (aktif)</option>
-            <option value="split" disabled>Split screen (segera hadir)</option>
-            <option value="face_tracking" disabled>Face tracking (segera hadir)</option>
+            <option value="auto">Auto</option>
+            <option value="split" disabled>Split screen (segera)</option>
+            <option value="face_tracking" disabled>Face tracking (segera)</option>
           </select>
-        </label>
-        <label style={{ display: "block" }}>
-          Gaya subtitle:{" "}
+        </div>
+        <div className="settings-row">
+          <span>Gaya subtitle</span>
           <select value={subtitleStyle} onChange={(e) => setSubtitleStyle(e.target.value)}>
-            <option value="default">Default (aktif)</option>
-            <option value="viral_pop" disabled>Viral Pop (segera hadir)</option>
+            <option value="default">Default</option>
+            <option value="viral_pop" disabled>Viral Pop (segera)</option>
           </select>
-        </label>
-      </section>
+        </div>
+      </div>
 
-      <h2>Proyek Saya</h2>
+      <h2 className="section-title">Proyek Saya</h2>
+      {projects.length === 0 && (
+        <p className="clip-reason">Belum ada video. Upload satu di atas untuk mulai.</p>
+      )}
+
       {projects.map((p) => (
-        <div key={p.id} style={{ border: "1px solid #333", borderRadius: 12, padding: 16, marginBottom: 16 }}>
-          <strong>{p.title}</strong>
-          <p>Status: {p.status} {p.error_message && `— ${p.error_message}`}</p>
+        <div key={p.id} className="project">
+          <p className="project-title">{p.title}</p>
+          <span className={`status-pill ${p.status === "moments_detected" ? "ready" : ""} ${p.status === "error" ? "error" : ""}`}>
+            {p.status}
+          </span>
+          {p.error_message && <p className="error-msg">{p.error_message}</p>}
 
           {p.status === "transcribed" && (
-            <button onClick={() => handleDetectMoments(p.id)}>Deteksi Momen Viral ({clipCount} klip)</button>
+            <button className="btn btn-primary" onClick={() => handleDetectMoments(p.id)}>
+              Deteksi Momen Viral · {clipCount} klip
+            </button>
           )}
 
           {p.clips?.map((c) => (
-            <div key={c.id} style={{ borderTop: "1px solid #333", marginTop: 8, paddingTop: 8 }}>
-              <p><strong>{c.hook_title}</strong></p>
-              <p style={{ fontSize: 12, opacity: 0.7 }}>{c.viral_reason}</p>
-              <p style={{ fontSize: 12 }}>Status render: {c.render_status} {c.render_error && `— ${c.render_error}`}</p>
+            <div key={c.id} className="clip">
+              <p className="clip-hook">{c.hook_title}</p>
+              <p className="clip-reason">
+                <span className="timecode">{formatTimecode(c.start_ms)}–{formatTimecode(c.end_ms)}</span>
+                {"  ·  "}{c.viral_reason}
+              </p>
+
               {c.render_status === "pending" && (
-                <button onClick={() => handleRenderClip(c.id)}>Render Klip</button>
+                <button className="btn btn-primary" onClick={() => handleRenderClip(c.id)}>
+                  ✂ Potong Video Ini
+                </button>
               )}
-              {c.render_url && (
-                <video src={c.render_url} controls style={{ width: "100%", marginTop: 8 }} />
+              {c.render_status === "error" && (
+                <>
+                  <p className="error-msg">{c.render_error}</p>
+                  <button className="btn btn-secondary" onClick={() => handleRenderClip(c.id)}>
+                    Coba Potong Lagi
+                  </button>
+                </>
               )}
+              {c.render_url && <video src={c.render_url} controls />}
             </div>
           ))}
         </div>
@@ -250,18 +278,20 @@ function LoginForm() {
   }
 
   return (
-    <main style={{ maxWidth: 400, margin: "80px auto", padding: 16, fontFamily: "system-ui" }}>
-      <h1>KlipPro</h1>
-      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: "100%", padding: 8, marginBottom: 8 }} />
-      <input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: "100%", padding: 8, marginBottom: 8 }} />
-      {error && <p style={{ color: "salmon" }}>{error}</p>}
-      <button onClick={submit} style={{ width: "100%", padding: 10 }}>
+    <main className="login-wrap">
+      <div className="hero" style={{ border: "none", paddingTop: 0 }}>
+        <h1>KlipPro</h1>
+        <p>Masuk untuk mulai memotong video.</p>
+      </div>
+      <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ marginBottom: 10 }} />
+      <input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} style={{ marginBottom: 10 }} />
+      {error && <p className="error-msg">{error}</p>}
+      <button className="btn btn-primary" onClick={submit}>
         {mode === "login" ? "Masuk" : "Daftar"}
       </button>
-      <p onClick={() => setMode(mode === "login" ? "signup" : "login")} style={{ cursor: "pointer", marginTop: 8 }}>
+      <p className="link-toggle" onClick={() => setMode(mode === "login" ? "signup" : "login")}>
         {mode === "login" ? "Belum punya akun? Daftar" : "Sudah punya akun? Masuk"}
       </p>
     </main>
   );
     }
-         
