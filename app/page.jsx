@@ -211,7 +211,7 @@ export default function Home() {
       {projects.map((p) => (
         <div key={p.id} style={{ border: "1px solid #333", borderRadius: 12, padding: 16, marginBottom: 16 }}>
           <strong>{p.title}</strong>
-          <p>Status: {p.status} {p.render_error && `— ${p.render_error}`}</p>
+          <p>Status: {p.status} {p.error_message && `— ${p.error_message}`}</p>
 
           {p.status === "transcribed" && (
             <button onClick={() => handleDetectMoments(p.id)}>Deteksi Momen Viral ({clipCount} klip)</button>
