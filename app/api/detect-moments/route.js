@@ -44,9 +44,11 @@ export async function POST(req) {
 
     const { words, full_text } = project.transcript;
 
-    // 1) Minta Gemini mengusulkan kandidat momen viral
+    // SATU kali panggilan AI untuk semuanya (kandidat momen + judul hook
+    // sekaligus) — sengaja digabung supaya tidak kena limit "5 permintaan
+    // per menit" di tier gratis Gemini.
     const candidatesRaw = await askGemini(
-      `Berikut transkrip lengkap sebuah video (Bahasa Indonesia):\n\n"""${full_text}"""\n\nUsulkan tepat ${targetCount} momen (durasi 20-90 detik) yang paling berpotensi viral untuk TikTok/Reels/Shorts. Balas HANYA JSON array, format: [{"start_hint": "kutipan kalimat awal momen", "end_hint": "kutipan kalimat akhir momen", "reason": "alasan singkat kenapa menarik"}]. Jangan tambahkan teks lain di luar JSON.`
+      `Berikut transkrip lengkap sebuah video (Bahasa Indonesia):\n\n"""${full_text}"""\n\nUsulkan tepat ${targetCount} momen (durasi 20-90 detik) yang paling berpotensi viral untuk TikTok/Reels/Shorts. Untuk SETIAP momen, buat juga judul/hook pendek (maks 12 kata) berdasarkan isi momen itu sendiri. Balas HANYA JSON array, format: [{"start_hint": "kutipan kalimat awal momen (persis dari transkrip)", "end_hint": "kutipan kalimat akhir momen (persis dari transkrip)", "reason": "alasan singkat kenapa menarik", "hook_title": "judul pendek untuk klip ini"}]. Jangan tambahkan teks lain di luar JSON.`
     );
     const candidates = JSON.parse(candidatesRaw.replace(/```json|```/g, "").trim());
 
@@ -68,19 +70,12 @@ export async function POST(req) {
       const clipTranscript = sliceTranscript(words, startMs, endMs);
       if (!clipTranscript) continue;
 
-      // 2) Generate hook/title dari TEKS ASLI klip ini (bukan dari transkrip penuh)
-      const hookTitle = (
-        await askGemini(
-          `Ini transkrip PERSIS dari satu klip video (Bahasa Indonesia):\n\n"""${clipTranscript}"""\n\nBuat 1 judul/hook pendek (maks 12 kata) yang menarik untuk klip ini, HARUS berdasarkan isi transkrip di atas, jangan mengarang di luar konteksnya. Balas hanya teks judulnya saja.`
-        )
-      ).trim();
-
       clipsToInsert.push({
         project_id: projectId,
         start_ms: startMs,
         end_ms: endMs,
         clip_transcript: clipTranscript,
-        hook_title: hookTitle,
+        hook_title: c.hook_title,
         viral_reason: c.reason,
         render_status: "pending",
       });
@@ -103,5 +98,4 @@ export async function POST(req) {
       .eq("id", projectId);
     return Response.json({ error: String(err) }, { status: 500 });
   }
-  }
-                                               
+                         }
