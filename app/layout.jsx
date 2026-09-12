@@ -1,12 +1,21 @@
+import "./globals.css";
+
 export const metadata = {
   title: "KlipPro",
-  description: "Ubah video panjang jadi klip pendek berpotensi viral",
+  description: "Potong video panjang jadi klip pendek berpotensi viral",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
-      <body style={{ background: "#0a0a0a", color: "#fff", margin: 0 }}>{children}</body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body>{children}</body>
     </html>
   );
 }
