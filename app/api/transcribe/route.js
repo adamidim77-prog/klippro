@@ -70,7 +70,7 @@ export async function POST(req) {
   } catch (err) {
     await db
       .from("projects")
-      .update({ status: "error", render_error: String(err) })
+      .update({ status: "error", render_message: String(err) })
       .eq("id", projectId);
     return Response.json({ error: String(err) }, { status: 500 });
   }
