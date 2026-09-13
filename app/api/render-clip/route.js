@@ -65,10 +65,10 @@ export async function POST(req) {
     let check;
     let checkBody = "";
     for (let attempt = 0; attempt < 8; attempt++) {
-      check = await fetch(renderUrl);
+      check = await fetch(renderUrl, { method: "HEAD" });
       if (check.ok) break;
       if (check.status !== 423) {
-        checkBody = check.headers.get("x-cld-error") || (await check.text());
+        checkBody = check.headers.get("x-cld-error") || "";
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 4000));
@@ -93,4 +93,4 @@ export async function POST(req) {
       .eq("id", clipId);
     return Response.json({ error: String(err) }, { status: 500 });
   }
-}
+        }
