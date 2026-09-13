@@ -52,7 +52,7 @@ main {
 .wrap {
   max-width: 480px;
   margin: 0 auto;
-  padding: 0 18px 60px;
+  padding: 0 18px 90px;
 }
 
 .topbar {
@@ -340,4 +340,73 @@ select {
   font-size: 14px;
   margin-top: 14px;
   cursor: pointer;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 5;
+}
+
+.bottom-nav button {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 11px;
+  padding: 6px 0 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.bottom-nav button.active {
+  color: var(--ready);
+}
+
+.bottom-nav svg {
+  width: 20px;
+  height: 20px;
+}
+
+.account-card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 8px;
+}
+
+.account-card .email {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  overflow-wrap: anywhere;
+}
+
+.help-item {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.help-item .q {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.help-item .a {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
    }
