@@ -32,14 +32,55 @@ body {
   margin: 0;
 }
 
+.bg-deco {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.bg-deco svg {
+  position: absolute;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
 .wrap {
   max-width: 480px;
   margin: 0 auto;
-  padding: 20px 18px 60px;
+  padding: 0 18px 60px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+}
+
+.topbar .brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.topbar .signout {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
 }
 
 .hero {
-  padding: 28px 0 20px;
+  padding: 8px 0 20px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 24px;
 }
@@ -130,6 +171,11 @@ select {
   cursor: pointer;
   width: 100%;
   margin-top: 10px;
+  transition: transform 0.08s ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn-primary {
@@ -184,14 +230,54 @@ select {
 }
 
 .project {
-  border-top: 1px solid var(--line);
-  padding: 18px 0;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.project-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.project-thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+
+.project-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.source-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ready);
+  display: inline-block;
 }
 
 .project-title {
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 4px;
+  overflow-wrap: anywhere;
 }
 
 .status-pill {
@@ -216,10 +302,10 @@ select {
 }
 
 .clip {
-  background: var(--surface);
+  background: var(--surface-2);
   border-radius: 12px;
   padding: 14px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .clip-hook {
@@ -254,5 +340,4 @@ select {
   font-size: 14px;
   margin-top: 14px;
   cursor: pointer;
-  }
-  
+   }
