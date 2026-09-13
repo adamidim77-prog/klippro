@@ -56,7 +56,8 @@ export async function POST(req) {
     const transformation = [
       `so_${startSec},du_${durationSec}`,
       "ar_9:16,c_fill,g_auto",
-      `l_subtitles:${srtUpload.public_id}.srt,co_white,so_-200`,
+      `l_subtitles:${srtUpload.public_id}.srt,co_white,g_south,y_40`,
+      "fl_layer_apply",
     ].join("/");
 
     const renderUrl = `https://res.cloudinary.com/${cloud}/video/upload/${transformation}/${videoPublicId}.mp4`;
@@ -88,4 +89,4 @@ export async function POST(req) {
       .eq("id", clipId);
     return Response.json({ error: String(err) }, { status: 500 });
   }
-      }
+}
