@@ -63,16 +63,20 @@ export async function POST(req) {
     const renderUrl = `https://res.cloudinary.com/${cloud}/video/upload/${transformation}/${videoPublicId}.mp4`;
 
     let check;
+    let checkBody = "";
     for (let attempt = 0; attempt < 8; attempt++) {
-      check = await fetch(renderUrl, { method: "HEAD" });
+      check = await fetch(renderUrl);
       if (check.ok) break;
-      if (check.status !== 423) break;
+      if (check.status !== 423) {
+        checkBody = await check.text();
+        break;
+      }
       await new Promise((resolve) => setTimeout(resolve, 4000));
     }
 
     if (!check.ok) {
       throw new Error(
-        `Render belum tersedia (status ${check.status}). Catatan: gravity_auto Cloudinary adalah content-aware cropping, BUKAN face-tracking dinamis per-frame sungguhan.`
+        `Render belum tersedia (status ${check.status}): ${checkBody.slice(0, 300)}`
       );
     }
 
@@ -89,4 +93,4 @@ export async function POST(req) {
       .eq("id", clipId);
     return Response.json({ error: String(err) }, { status: 500 });
   }
-}
+      }
