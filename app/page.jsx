@@ -30,6 +30,7 @@ export default function Home() {
   const [subtitleStyle, setSubtitleStyle] = useState("default");
   const [detectingId, setDetectingId] = useState(null);
   const [renderingId, setRenderingId] = useState(null);
+  const [tab, setTab] = useState("beranda");
 
   useEffect(() => {
     supabaseBrowser.auth.getSession().then(({ data }) => setSession(data.session));
@@ -40,6 +41,13 @@ export default function Home() {
   useEffect(() => {
     if (session) loadProjects();
   }, [session]);
+
+  useEffect(() => {
+    const stillProcessing = projects.some((p) => p.status === "uploaded" || p.status === "transcribing");
+    if (!stillProcessing) return;
+    const interval = setInterval(loadProjects, 5000);
+    return () => clearInterval(interval);
+  }, [projects]);
 
   async function loadProjects() {
     const { data } = await supabaseBrowser
@@ -162,9 +170,10 @@ export default function Home() {
     <main className="wrap">
       <div className="topbar">
         <span className="brand">KlipPro</span>
-        <button className="signout" onClick={handleSignOut}>Keluar</button>
       </div>
 
+      {tab === "beranda" && (
+        <>
       <div className="hero">
         <h1>KlipPro</h1>
         <p>Tempel video panjang, AI carikan momen-momen yang layak jadi klip pendek.</p>
@@ -210,32 +219,6 @@ export default function Home() {
         {error && <p className="error-msg">{error}</p>}
       </div>
 
-      <div className="settings">
-        <div className="settings-row">
-          <span>Jumlah klip</span>
-          <select value={clipCount} onChange={(e) => setClipCount(Number(e.target.value))}>
-            <option value={3}>3</option>
-            <option value={4}>4</option>
-            <option value={6}>6</option>
-          </select>
-        </div>
-        <div className="settings-row">
-          <span>Mode layout</span>
-          <select value={layoutMode} onChange={(e) => setLayoutMode(e.target.value)}>
-            <option value="auto">Auto</option>
-            <option value="split" disabled>Split screen (segera)</option>
-            <option value="face_tracking" disabled>Face tracking (segera)</option>
-          </select>
-        </div>
-        <div className="settings-row">
-          <span>Gaya subtitle</span>
-          <select value={subtitleStyle} onChange={(e) => setSubtitleStyle(e.target.value)}>
-            <option value="default">Default</option>
-            <option value="viral_pop" disabled>Viral Pop (segera)</option>
-          </select>
-        </div>
-      </div>
-
       <h2 className="section-title">Proyek Saya</h2>
       {projects.length === 0 && (
         <p className="clip-reason">Belum ada video. Upload satu di atas untuk mulai.</p>
@@ -266,6 +249,11 @@ export default function Home() {
               {detectingId === p.id ? "Menganalisis video..." : `Deteksi Momen Viral · ${clipCount} klip`}
             </button>
           )}
+          {p.status === "error" && (
+            <button className="btn btn-secondary" onClick={() => handleDetectMoments(p.id)} disabled={detectingId === p.id}>
+              {detectingId === p.id ? "Mencoba lagi..." : "Coba Lagi"}
+            </button>
+          )}
 
           {p.clips?.map((c) => (
             <div key={c.id} className="clip">
@@ -293,6 +281,67 @@ export default function Home() {
           ))}
         </div>
       ))}
+        </>
+      )}
+
+      {tab === "pengaturan" && (
+        <>
+          <h2 className="section-title" style={{ marginTop: 8 }}>Pengaturan</h2>
+          <div className="settings">
+            <div className="settings-row">
+              <span>Jumlah klip</span>
+              <select value={clipCount} onChange={(e) => setClipCount(Number(e.target.value))}>
+                <option value={3}>3</option>
+                <option value={4}>4</option>
+                <option value={6}>6</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <span>Mode layout</span>
+              <select value={layoutMode} onChange={(e) => setLayoutMode(e.target.value)}>
+                <option value="auto">Auto</option>
+                <option value="split" disabled>Split screen (segera)</option>
+                <option value="face_tracking" disabled>Face tracking (segera)</option>
+              </select>
+            </div>
+            <div className="settings-row">
+              <span>Gaya subtitle</span>
+              <select value={subtitleStyle} onChange={(e) => setSubtitleStyle(e.target.value)}>
+                <option value="default">Default</option>
+                <option value="viral_pop" disabled>Viral Pop (segera)</option>
+              </select>
+            </div>
+          </div>
+          <p className="clip-reason" style={{ marginTop: 14 }}>
+            Pengaturan ini berlaku untuk video baru yang diproses.
+          </p>
+        </>
+      )}
+
+      {tab === "akun" && (
+        <>
+          <h2 className="section-title" style={{ marginTop: 8 }}>Akun</h2>
+          <div className="account-card">
+            <p className="email">{session.user.email}</p>
+            <button className="btn btn-secondary" onClick={handleSignOut}>Keluar</button>
+          </div>
+        </>
+      )}
+
+      <nav className="bottom-nav">
+        <button className={tab === "beranda" ? "active" : ""} onClick={() => setTab("beranda")}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
+          Beranda
+        </button>
+        <button className={tab === "pengaturan" ? "active" : ""} onClick={() => setTab("pengaturan")}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
+          Pengaturan
+        </button>
+        <button className={tab === "akun" ? "active" : ""} onClick={() => setTab("akun")}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="4" /><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" /></svg>
+          Akun
+        </button>
+      </nav>
     </main>
   );
 }
@@ -328,4 +377,3 @@ function LoginForm() {
     </main>
   );
     }
-    
