@@ -10,6 +10,12 @@ function formatTimecode(ms) {
   return `${m}:${s}`;
 }
 
+function sourceLabel(type) {
+  if (type === "youtube_preview") return "YouTube";
+  if (type === "google_drive") return "Google Drive";
+  return "Upload";
+}
+
 export default function Home() {
   const [session, setSession] = useState(null);
   const [projects, setProjects] = useState([]);
@@ -146,10 +152,19 @@ export default function Home() {
     setRenderingId(null);
   }
 
+  async function handleSignOut() {
+    await supabaseBrowser.auth.signOut();
+  }
+
   if (!session) return <LoginForm />;
 
   return (
     <main className="wrap">
+      <div className="topbar">
+        <span className="brand">KlipPro</span>
+        <button className="signout" onClick={handleSignOut}>Keluar</button>
+      </div>
+
       <div className="hero">
         <h1>KlipPro</h1>
         <p>Tempel video panjang, AI carikan momen-momen yang layak jadi klip pendek.</p>
@@ -228,11 +243,23 @@ export default function Home() {
 
       {projects.map((p) => (
         <div key={p.id} className="project">
-          <p className="project-title">{p.title}</p>
-          <span className={`status-pill ${p.status === "moments_detected" ? "ready" : ""} ${p.status === "error" ? "error" : ""}`}>
-            {p.status}
-          </span>
-          {p.error_message && <p className="error-msg">{p.error_message}</p>}
+          <div className="project-head">
+            {p.video_public_id && (
+              <img
+                className="project-thumb"
+                src={`https://res.cloudinary.com/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload/so_0/${p.video_public_id}.jpg`}
+                alt=""
+              />
+            )}
+            <div className="project-meta">
+              <div className="source-badge"><span className="dot" />{sourceLabel(p.source_type)}</div>
+              <p className="project-title">{p.title}</p>
+              <span className={`status-pill ${p.status === "moments_detected" ? "ready" : ""} ${p.status === "error" ? "error" : ""}`}>
+                {p.status}
+              </span>
+              {p.error_message && <p className="error-msg">{p.error_message}</p>}
+            </div>
+          </div>
 
           {p.status === "transcribed" && (
             <button className="btn btn-primary" onClick={() => handleDetectMoments(p.id)} disabled={detectingId === p.id}>
@@ -300,4 +327,5 @@ function LoginForm() {
       </p>
     </main>
   );
-         }
+    }
+    
