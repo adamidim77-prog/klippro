@@ -47,6 +47,7 @@ export async function POST(req) {
       file: new Blob([srtContent], { type: "text/plain" }),
       publicId: `klippro_srt_${clipId}`,
       resourceType: "raw",
+      format: "srt",
     });
 
     const startSec = (clip.start_ms / 1000).toFixed(2);
@@ -60,8 +61,6 @@ export async function POST(req) {
 
     const renderUrl = `https://res.cloudinary.com/${cloud}/video/upload/${transformation}/${videoPublicId}.mp4`;
 
-    // Cloudinary memproses transformasi video secara async di belakang layar.
-    // Status 423 artinya "masih diproses, coba lagi sebentar" — bukan gagal.
     let check;
     for (let attempt = 0; attempt < 8; attempt++) {
       check = await fetch(renderUrl, { method: "HEAD" });
@@ -89,4 +88,4 @@ export async function POST(req) {
       .eq("id", clipId);
     return Response.json({ error: String(err) }, { status: 500 });
   }
-}
+      }
