@@ -35,8 +35,6 @@ export async function POST(req) {
     const words = clip.projects.transcript.words;
     const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
-    // Video sudah ada di Cloudinary sejak diupload/diimpor — fallback jaga-jaga
-    // untuk proyek lama yang belum punya video_public_id.
     let videoPublicId = clip.projects.video_public_id;
     if (!videoPublicId) {
       videoPublicId = `klippro_video_fallback_${clip.projects.id}`;
@@ -44,7 +42,6 @@ export async function POST(req) {
       await db.from("projects").update({ video_public_id: videoPublicId }).eq("id", clip.projects.id);
     }
 
-    // Upload subtitle .srt klip ini
     const srtContent = buildSrt(words, clip.start_ms, clip.end_ms);
     const srtUpload = await cloudinaryUpload({
       file: new Blob([srtContent], { type: "text/plain" }),
@@ -63,7 +60,16 @@ export async function POST(req) {
 
     const renderUrl = `https://res.cloudinary.com/${cloud}/video/upload/${transformation}/${videoPublicId}.mp4`;
 
-    const check = await fetch(renderUrl, { method: "HEAD" });
+    // Cloudinary memproses transformasi video secara async di belakang layar.
+    // Status 423 artinya "masih diproses, coba lagi sebentar" — bukan gagal.
+    let check;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      check = await fetch(renderUrl, { method: "HEAD" });
+      if (check.ok) break;
+      if (check.status !== 423) break;
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+    }
+
     if (!check.ok) {
       throw new Error(
         `Render belum tersedia (status ${check.status}). Catatan: gravity_auto Cloudinary adalah content-aware cropping, BUKAN face-tracking dinamis per-frame sungguhan.`
@@ -83,4 +89,4 @@ export async function POST(req) {
       .eq("id", clipId);
     return Response.json({ error: String(err) }, { status: 500 });
   }
-                       }
+}
