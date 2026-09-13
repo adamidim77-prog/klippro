@@ -218,10 +218,14 @@ export default function Home() {
 
         {error && <p className="error-msg">{error}</p>}
       </div>
+        </>
+      )}
 
-      <h2 className="section-title">Proyek Saya</h2>
+      {tab === "proyek" && (
+        <>
+      <h2 className="section-title" style={{ marginTop: 8 }}>Proyek Saya</h2>
       {projects.length === 0 && (
-        <p className="clip-reason">Belum ada video. Upload satu di atas untuk mulai.</p>
+        <p className="clip-reason">Belum ada video. Upload dulu di tab Beranda.</p>
       )}
 
       {projects.map((p) => (
@@ -333,6 +337,10 @@ export default function Home() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 11l9-8 9 8" /><path d="M5 10v10h14V10" /></svg>
           Beranda
         </button>
+        <button className={tab === "proyek" ? "active" : ""} onClick={() => setTab("proyek")}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
+          Proyek
+        </button>
         <button className={tab === "pengaturan" ? "active" : ""} onClick={() => setTab("pengaturan")}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" /></svg>
           Pengaturan
@@ -376,4 +384,4 @@ function LoginForm() {
       </p>
     </main>
   );
-    }
+         }
