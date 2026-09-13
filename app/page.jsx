@@ -22,6 +22,8 @@ export default function Home() {
   const [clipCount, setClipCount] = useState(4);
   const [layoutMode, setLayoutMode] = useState("auto");
   const [subtitleStyle, setSubtitleStyle] = useState("default");
+  const [detectingId, setDetectingId] = useState(null);
+  const [renderingId, setRenderingId] = useState(null);
 
   useEffect(() => {
     supabaseBrowser.auth.getSession().then(({ data }) => setSession(data.session));
@@ -105,11 +107,13 @@ export default function Home() {
   }
 
   async function handleDetectMoments(projectId) {
+    setDetectingId(projectId);
     await fetch("/api/detect-moments", {
       method: "POST",
       body: JSON.stringify({ projectId, clipCount }),
     });
-    loadProjects();
+    await loadProjects();
+    setDetectingId(null);
   }
 
   async function handleDriveImport() {
@@ -133,11 +137,13 @@ export default function Home() {
   }
 
   async function handleRenderClip(clipId) {
+    setRenderingId(clipId);
     await fetch("/api/render-clip", {
       method: "POST",
       body: JSON.stringify({ clipId }),
     });
-    loadProjects();
+    await loadProjects();
+    setRenderingId(null);
   }
 
   if (!session) return <LoginForm />;
@@ -229,8 +235,8 @@ export default function Home() {
           {p.error_message && <p className="error-msg">{p.error_message}</p>}
 
           {p.status === "transcribed" && (
-            <button className="btn btn-primary" onClick={() => handleDetectMoments(p.id)}>
-              Deteksi Momen Viral · {clipCount} klip
+            <button className="btn btn-primary" onClick={() => handleDetectMoments(p.id)} disabled={detectingId === p.id}>
+              {detectingId === p.id ? "Menganalisis video..." : `Deteksi Momen Viral · ${clipCount} klip`}
             </button>
           )}
 
@@ -243,15 +249,15 @@ export default function Home() {
               </p>
 
               {c.render_status === "pending" && (
-                <button className="btn btn-primary" onClick={() => handleRenderClip(c.id)}>
-                  ✂ Potong Video Ini
+                <button className="btn btn-primary" onClick={() => handleRenderClip(c.id)} disabled={renderingId === c.id}>
+                  {renderingId === c.id ? "Memotong video..." : "✂ Potong Video Ini"}
                 </button>
               )}
               {c.render_status === "error" && (
                 <>
                   <p className="error-msg">{c.render_error}</p>
-                  <button className="btn btn-secondary" onClick={() => handleRenderClip(c.id)}>
-                    Coba Potong Lagi
+                  <button className="btn btn-secondary" onClick={() => handleRenderClip(c.id)} disabled={renderingId === c.id}>
+                    {renderingId === c.id ? "Memotong video..." : "Coba Potong Lagi"}
                   </button>
                 </>
               )}
@@ -294,4 +300,4 @@ function LoginForm() {
       </p>
     </main>
   );
-    }
+         }
