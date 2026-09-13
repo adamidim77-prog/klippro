@@ -33,7 +33,7 @@ export async function POST(req) {
     if (!clip) throw new Error("Klip tidak ditemukan.");
 
     const words = clip.projects.transcript.words;
-    const cloud = process.env.CLOUDINARY_CLOUD_NAME;
+    const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
     // Video sudah ada di Cloudinary sejak diupload/diimpor — fallback jaga-jaga
     // untuk proyek lama yang belum punya video_public_id.
@@ -57,7 +57,7 @@ export async function POST(req) {
 
     const transformation = [
       `so_${startSec},du_${durationSec}`,
-      "ar_9:16,c_fill,g_auto", // reframe cover 9:16, gravity otomatis (content-aware, BUKAN face-tracking asli)
+      "ar_9:16,c_fill,g_auto",
       `l_subtitles:${srtUpload.public_id}.srt,co_white,so_-200`,
     ].join("/");
 
@@ -83,5 +83,4 @@ export async function POST(req) {
       .eq("id", clipId);
     return Response.json({ error: String(err) }, { status: 500 });
   }
-}
-  
+                       }
