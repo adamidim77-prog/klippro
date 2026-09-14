@@ -55,7 +55,7 @@ export async function POST(req) {
 
     const transformation = [
       `so_${startSec},du_${durationSec}`,
-      "ar_9:16,c_fill,g_auto",
+      "ar_9:16,c_fill,g_face",
       `l_subtitles:${srtUpload.public_id}`,
       "fl_layer_apply",
     ].join("/");
