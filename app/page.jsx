@@ -124,7 +124,7 @@ export default function Home() {
     setDetectingId(projectId);
     await fetch("/api/detect-moments", {
       method: "POST",
-      body: JSON.stringify({ projectId, clipCount }),
+      body: JSON.stringify({ projectId, clipCount, subtitleStyle }),
     });
     await loadProjects();
     setDetectingId(null);
@@ -158,6 +158,13 @@ export default function Home() {
     });
     await loadProjects();
     setRenderingId(null);
+  }
+
+  async function handleDeleteProject(projectId) {
+    if (!confirm("Hapus proyek ini beserta semua klipnya?")) return;
+    await supabaseBrowser.from("clips").delete().eq("project_id", projectId);
+    await supabaseBrowser.from("projects").delete().eq("id", projectId);
+    loadProjects();
   }
 
   async function handleSignOut() {
@@ -246,6 +253,15 @@ export default function Home() {
               </span>
               {p.error_message && <p className="error-msg">{p.error_message}</p>}
             </div>
+            <button
+              onClick={() => handleDeleteProject(p.id)}
+              style={{ background: "none", border: "none", color: "var(--text-dim)", cursor: "pointer", padding: 4, flexShrink: 0 }}
+              aria-label="Hapus proyek"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M3 6h18" /><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              </svg>
+            </button>
           </div>
 
           {p.status === "transcribed" && (
@@ -311,8 +327,8 @@ export default function Home() {
             <div className="settings-row">
               <span>Gaya subtitle</span>
               <select value={subtitleStyle} onChange={(e) => setSubtitleStyle(e.target.value)}>
-                <option value="default">Default</option>
-                <option value="viral_pop" disabled>Viral Pop (segera)</option>
+                <option value="default">Default (putih)</option>
+                <option value="viral_pop">Viral Pop (kuning)</option>
               </select>
             </div>
           </div>
@@ -384,4 +400,4 @@ function LoginForm() {
       </p>
     </main>
   );
-         }
+      }
